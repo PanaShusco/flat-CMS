@@ -1,14 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
   const [noticias, setNoticias] = useState([]);
+
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [titulo, setTitulo] = useState("");
   const [parrafo, setParrafo] = useState("");
   const [imagenUrl, setImagenUrl] = useState("");
 
-  const manejarPublicacion = (e) => {
+  const cargarNoticias = async () => {
+    try {
+      const respuesta = await fetch("http://localhost:3001/noticias");
+      if (respuesta.ok) {
+        const datos = await respuesta.json();
+        setNoticias(datos);
+      }
+    } catch (error) {
+      console.log("Esperando conexión con el backend...");
+    }
+  };
+
+  useEffect(() => {
+    cargarNoticias();
+    const intervalo = setInterval(cargarNoticias, 2000);
+    return () => clearInterval(intervalo);
+  }, []);
+
+  const manejarPublicacion = async (e) => {
     e.preventDefault();
 
     if (!titulo.trim()) {
@@ -24,16 +43,30 @@ function App() {
       hora: new Date().toLocaleTimeString(),
     };
 
-    setNoticias([nueva, ...noticias]);
+    try {
+      await fetch("http://localhost:3001/noticias", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nueva),
+      });
+      cargarNoticias();
 
-    setTitulo("");
-    setParrafo("");
-    setImagenUrl("");
-    setMostrarFormulario(false);
+      setTitulo("");
+      setParrafo("");
+      setImagenUrl("");
+      setMostrarFormulario(false);
+    } catch (e) {
+      alert("El servidor Node.js debe estar corriendo en el puerto 3001.");
+    }
   };
 
-  const borrarNoticia = (id) => {
-    setNoticias(noticias.filter((n) => n.id !== id));
+  const borrarNoticia = async (id) => {
+    try {
+      await fetch(`http://localhost:3001/noticias/${id}`, { method: "DELETE" });
+      cargarNoticias();
+    } catch (e) {
+      console.error("Error al borrar", e);
+    }
   };
 
   return (
@@ -43,13 +76,13 @@ function App() {
       </header>
 
       <nav className="barra-atajos">
-        <a href="#noticias" className="btn-atajo">
+        <a href="#noticia" className="btn-atajo">
           Noticias
         </a>
-        <a href="#reviews" className="btn-atajo">
+        <a href="#review" className="btn-atajo">
           Reseñas
         </a>
-        <a href="#lanzamientos" className="btn-atajo">
+        <a href="#lanzamiento" className="btn-atajo">
           Salidas
         </a>
         <a href="#acercaDe" className="btn-atajo">
@@ -58,7 +91,7 @@ function App() {
       </nav>
 
       <div className="contenido-central">
-        <main id="noticias" className="seccion-noticias">
+        <main id="noticia" className="seccion-noticias">
           <div className="encabezado-noticias">
             <h2>Últimas Noticias</h2>
             <button
@@ -73,7 +106,7 @@ function App() {
             <form onSubmit={manejarPublicacion} className="formulario-crear">
               <input
                 type="text"
-                placeholder="TItulo de la noticia... (obligatorio)"
+                placeholder="Título de la noticia... (obligatorio)"
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
               />
@@ -84,7 +117,7 @@ function App() {
                 onChange={(e) => setImagenUrl(e.target.value)}
               />
               <textarea
-                placeholder="Desarrolla la noticia aqui... (opcional)"
+                placeholder="Desarrolla la noticia aquí... (opcional)"
                 rows="3"
                 value={parrafo}
                 onChange={(e) => setParrafo(e.target.value)}
@@ -120,6 +153,7 @@ function App() {
                   {item.parrafo && (
                     <p className="parrafo-noticia">{item.parrafo}</p>
                   )}
+
                   <small className="hora-noticia">{item.hora}</small>
                 </div>
               </div>
@@ -128,14 +162,14 @@ function App() {
         </main>
 
         <aside className="panel-lateral">
-          <section id="reviews" className="seccion-extra">
+          <section id="review" className="seccion-extra">
             <h3>Reseñas Destacadas</h3>
             <p>
               <strong>Elden Ring: Shadow of the Erdtree</strong>
               <br />
               Una expansión masiva que redefine el juego base. 10/10.
             </p>
-            <hr style={{ margin: "10px 0", borderTop: "1px solid #eee" }} />
+            <hr />
             <p>
               <strong>Resident Evil Requiem</strong>
               <br />
@@ -146,7 +180,7 @@ function App() {
             </p>
           </section>
 
-          <section id="lanzamientos" className="seccion-extra">
+          <section id="lanzamiento" className="seccion-extra">
             <h3>Próximos Lanzamientos</h3>
             <ul>
               <li>5/3/2026 - Pokémon Pokopia</li>
@@ -163,9 +197,8 @@ function App() {
           <div className="footer-seccion">
             <h4>SOBRE HELL GAMES</h4>
             <p>
-              Sitio para las noticias más recientes, reseñas honestas y las
-              últimas novedades del mundo del gaming. Mantente al día con
-              nosotros.
+              Sitio para las noticias más recientes, reseñas y las últimas
+              novedades del mundo del gaming. Mantente al día con nosotros.
             </p>
           </div>
 
