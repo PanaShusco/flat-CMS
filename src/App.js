@@ -11,7 +11,7 @@ function App() {
 
   const cargarNoticias = async () => {
     try {
-      const respuesta = await fetch("http://localhost:3001/noticias");
+      const respuesta = await fetch("/noticias");
       if (respuesta.ok) {
         const datos = await respuesta.json();
         setNoticias(datos);
@@ -44,7 +44,7 @@ function App() {
     };
 
     try {
-      await fetch("http://localhost:3001/noticias", {
+      await fetch("/noticias", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(nueva),
@@ -62,7 +62,7 @@ function App() {
 
   const borrarNoticia = async (id) => {
     try {
-      await fetch(`http://localhost:3001/noticias/${id}`, { method: "DELETE" });
+      await fetch(`/noticias/${id}`, { method: "DELETE" });
       cargarNoticias();
     } catch (e) {
       console.error("Error al borrar", e);

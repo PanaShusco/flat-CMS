@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const PORT = 3001;
@@ -8,6 +9,7 @@ const ARCHIVO_NOTICIAS = "./noticias.json";
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "build")));
 
 const leerNoticias = () => {
   try {
@@ -59,5 +61,5 @@ app.delete("/noticias/:id", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor Backend corriendo en http://localhost:${PORT}`);
-  console.log(`Las noticias se auto-eliminarán después de 1 minuto.`);
+  console.log(`Aplicacion corriendo`);
 });
